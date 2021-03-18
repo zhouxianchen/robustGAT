@@ -1,4 +1,8 @@
 # roboust-GAT
 
-Impilicit 文件夹是通过隐式正则性来训练RoGATd1
+In this work, we study robust graph attention network for vertex classification. This work is based on deeprobust. Our preprint is uploaded on arXiv.
+
+Requirements
+
+dgl
 

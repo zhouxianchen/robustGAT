@@ -22,7 +22,6 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 
-
 def sparse_diag(input_tensor):
     """
     Returns the identity matrix as a sparse matrix
@@ -131,6 +130,7 @@ class Pre_GAT:
         t = time.time()
         estimator.train()
         self.optimizer_adj.zero_grad()
+        # loss_l1 = torch.norm(estimator.estimated_adj, 1)
         loss_fro = torch.norm(estimator.estimated_adj - adj, p='fro')
         g = self.generate_g(estimator.estimated_adj)
         if args.lambda_:
@@ -145,14 +145,13 @@ class Pre_GAT:
         loss_diffiential = loss_fro + args.gamma * loss_gcn + args.lambda_ * loss_smooth_feat
         loss_diffiential.backward()
         self.optimizer_adj.step()
- 
+
         estimator.estimated_adj.data.copy_(torch.clamp(
             estimator.estimated_adj.data, min=0, max=1))
 
         # Evaluate validation set performance separately,
         # deactivates dropout during validation run.
         self.model.eval()
-        #以下两行要注释
 
         g = self.generate_g(estimator.estimated_adj)
         with torch.no_grad():
@@ -200,6 +199,7 @@ class Pre_GAT:
         acc_train = accuracy(output[idx_train], labels[idx_train])
         if args.method == "smooth":
              loss_feat = self.feature_smoothing(adj, self.estimator2.estimated_feature)
+
         loss_diffiential = loss_fro + args.gamma * loss_gcn + args.lambda_ * loss_feat
 
         loss_diffiential.backward()
@@ -208,9 +208,7 @@ class Pre_GAT:
         total_loss = loss_fro \
                  + args.gamma * loss_gcn \
                   + args.lambda_ * loss_feat
-        # estimator2.estimated_feature.data.copy(estimator2.estimated_feature.data)
 
-        del output,adj
         self.model.eval()
         with torch.no_grad():
             output = self.model(g, self.estimator2.estimated_feature)
@@ -269,7 +267,6 @@ class Pre_GAT:
             loss_val = loss_fcn(output[idx_val], labels[idx_val])
             acc_val = accuracy(output[idx_val], labels[idx_val])
 
-
         if acc_val > self.best_val_acc:
             self.best_val_acc = acc_val
             self.best_graph = g
@@ -303,6 +300,7 @@ class Pre_GAT:
         args = self.args
 
         if self.best_graph is None:
+             #adj = self.estimator.normalize()
             adj = self.estimator.estimated_adj
             features = self.estimator2.estimated_feature
             g = self.generate_g(adj)
@@ -314,6 +312,7 @@ class Pre_GAT:
         print("\tTest set results:",
               "loss= {:.4f}".format(loss_test.item()),
               "accuracy= {:.4f}".format(acc_test.item()))
+
         logging.info("Accuracy："+str(acc_test.data))
     def feature_filter(self, adj, X):
         """
@@ -323,6 +322,7 @@ class Pre_GAT:
     
     def feature_smoothing(self, adj, X):
         args = self.args
+
         adj = (adj.t() + adj) / 2
         rowsum = adj.sum(1)
         r_inv = rowsum.flatten()
@@ -337,7 +337,6 @@ class Pre_GAT:
         loss_smooth_feat = torch.trace(XLXT)
 
         return loss_smooth_feat
-    
 
 
     def generate_g(self, estimated_adj):
@@ -348,8 +347,9 @@ class Pre_GAT:
             adj = estimated_adj
         a = (adj.cpu() + torch.eye(adj.shape[0])).detach().cpu().numpy()
         b = sp.coo_matrix(a)
-
         g = dgl.from_scipy(b, 'weight').to(device)
+
+        del a,b
 
         return g
 
@@ -379,6 +379,8 @@ class EstimateAdj(nn.Module):
             adj = self.estimated_adj
 
         normalized_adj = self._normalize(adj + torch.eye(adj.shape[0]).cuda())
+       # normalized_adj = self._normalize(adj + torch.eye(adj.shape[0]))
+        # normalized_adj = adj + torch.eye(adj.shape[0])
         return normalized_adj
 
     def _normalize(self, mx):
@@ -407,6 +409,3 @@ class EstimateFeature(nn.Module):
 
     def forward(self):
         return self.estimated_feature
-
- 
-

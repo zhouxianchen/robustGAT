@@ -4,21 +4,12 @@ import os
 import sys
 import argparse
 
-sys.path.append(os.path.dirname(sys.path[0]))
-curPath = os.path.abspath(os.path.dirname(__file__))
-rootPath = os.path.abspath(os.path.dirname(curPath)+os.path.sep+".")
-PathProject = os.path.split(rootPath)[0]
-sys.path.append(rootPath)
-sys.path.append(PathProject)
-
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 import dgl
-from dgl import DGLGraph
 import networkx as nx
-# import wandb
 import scipy.sparse as sp
 import logging
 from DeepRobust.deeprobust.graph.defense import GCN, ProGNN, Pre_GCN,GAT,generate_data, Ori_GAT, Pre_GAT
@@ -108,7 +99,6 @@ np.random.seed(15) # Here the random seed is to split the train/val/test data, w
 
 
 def generate_gat_data(args, data):
-
     adj, features, labels = data.adj, data.features, data.labels
     features = torch.FloatTensor(data.features.todense())
     labels = torch.LongTensor(data.labels)

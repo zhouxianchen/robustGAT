@@ -12,7 +12,7 @@ import dgl
 import networkx as nx
 import scipy.sparse as sp
 import logging
-from DeepRobust.deeprobust.graph.defense import GCN, ProGNN, Pre_GCN,GAT,generate_data, Ori_GAT, Pre_GAT
+from DeepRobust.deeprobust.graph.defense import GCN, ProGNN,GAT,generate_data, Ori_GAT, Pre_GAT
 from DeepRobust.deeprobust.graph.data import Dataset, PrePtbDataset
 from DeepRobust.deeprobust.graph.utils import preprocess
 
@@ -38,7 +38,7 @@ parser.add_argument('--hidden', type=int, default=16,
 parser.add_argument('--dropout', type=float, default=0.5,
                     help='Dropout rate (1 - keep probability).')
 parser.add_argument('--dataset', type=str, default='cora',
-        choices=['cora', 'cora_ml', 'citeseer', 'polblogs', 'pubmed'], help='dataset')
+        choices=['cora', 'cora_ml', 'citeseer', 'polblogs'], help='dataset')
 parser.add_argument('--attack', type=str, default='meta',
         choices=['no', 'meta', 'random', 'nettack'])
 parser.add_argument('--ptb_rate', type=float, default=0, help="noise ptb_rate")
